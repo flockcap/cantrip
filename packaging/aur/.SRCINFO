@@ -1,0 +1,17 @@
+pkgbase = cantrip-bin
+	pkgdesc = Speak plainly. Get the incantation. A beautiful, keyless shell companion.
+	pkgver = 0.1.2
+	pkgrel = 1
+	url = https://github.com/flockcap/cantrip
+	arch = x86_64
+	arch = aarch64
+	license = MIT
+	license = Apache-2.0
+	provides = cantrip
+	conflicts = cantrip
+	source_x86_64 = https://github.com/flockcap/cantrip/releases/download/v0.1.2/cantrip-cli-x86_64-unknown-linux-musl.tar.xz
+	sha256sums_x86_64 = bf62e10e57c8aa634107d7bb90076e8a245589c209e2cd83d8f0cc617b2a8923
+	source_aarch64 = https://github.com/flockcap/cantrip/releases/download/v0.1.2/cantrip-cli-aarch64-unknown-linux-musl.tar.xz
+	sha256sums_aarch64 = 13a97f92f04808c62f197dfb9d62529ff07dd9e81f1721afe82997a27403a85d
+
+pkgname = cantrip-bin

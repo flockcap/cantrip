@@ -1,0 +1,1 @@
+{"result": "{\"command\": \"for f in *.png; do cwebp -quiet -resize 800 0 \\\"$f\\\" -o \\\"${f%.png}.webp\\\"; done\", \"explanation\": \"800px wide. WebP. Originals stay untouched.\", \"danger\": \"low\", \"alternatives\": []}"}

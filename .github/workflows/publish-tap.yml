@@ -1,0 +1,46 @@
+name: Publish Homebrew
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+    secrets:
+      HOMEBREW_TAP_TOKEN:
+        required: false
+permissions:
+  contents: read
+jobs:
+  tap:
+    runs-on: ubuntu-latest
+    env:
+      TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Report missing credentials
+        if: env.TAP_TOKEN == ''
+        run: echo 'Automatic tap publishing skipped; configure a token scoped to flockcap/homebrew-tap as HOMEBREW_TAP_TOKEN.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/checkout@v4
+        if: env.TAP_TOKEN != ''
+        with:
+          repository: flockcap/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      - uses: actions/download-artifact@v4
+        if: env.TAP_TOKEN != ''
+        with:
+          pattern: artifacts-*
+          merge-multiple: true
+          path: release
+      - name: Publish generated formula
+        if: env.TAP_TOKEN != ''
+        env:
+          TAG: ${{ fromJson(inputs.plan).announcement_tag }}
+        run: |
+          mkdir -p Formula
+          cp release/cantrip.rb Formula/cantrip.rb
+          git config user.name 'Flock'
+          git config user.email 'hello@flock.holdings'
+          git add Formula/cantrip.rb
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: release cantrip ${TAG}"
+            git push
+          fi

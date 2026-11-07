@@ -1,0 +1,70 @@
+name: Installer smoke
+on:
+  workflow_dispatch:
+    inputs:
+      install_url:
+        description: Installer endpoint
+        required: true
+        default: https://cantrip.fyi/install
+      exercise_update:
+        description: Also exercise standalone self-update
+        type: boolean
+        required: false
+        default: false
+permissions:
+  contents: read
+jobs:
+  unix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      INSTALL_URL: ${{ inputs.install_url }}
+      CANTRIP_CLI_NO_MODIFY_PATH: '1'
+    steps:
+      - name: Install and run the published binary
+        shell: bash
+        run: |
+          export CANTRIP_INSTALL_DIR="$RUNNER_TEMP/cantrip-install"
+          curl -fsSL "$INSTALL_URL" | sh
+          "$CANTRIP_INSTALL_DIR/cantrip" --version
+      - name: Update the standalone install
+        if: inputs.exercise_update
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/cantrip-install/cantrip" update
+          "$RUNNER_TEMP/cantrip-install/cantrip" --version
+  windows:
+    runs-on: windows-latest
+    env:
+      INSTALL_URL: ${{ inputs.install_url }}
+      CANTRIP_CLI_NO_MODIFY_PATH: '1'
+    steps:
+      - name: Install and run the published binary
+        shell: pwsh
+        run: |
+          $env:CANTRIP_INSTALL_DIR = Join-Path $env:RUNNER_TEMP 'cantrip-install'
+          Invoke-RestMethod -Uri ($env:INSTALL_URL + '?shell=powershell') | Invoke-Expression
+          & (Join-Path $env:CANTRIP_INSTALL_DIR 'cantrip.exe') --version
+          if ($LASTEXITCODE -ne 0) { throw 'installed binary failed' }
+      - name: Update the standalone install after its process exits
+        if: inputs.exercise_update
+        shell: pwsh
+        run: |
+          $binary = Join-Path $env:RUNNER_TEMP 'cantrip-install/cantrip.exe'
+          $out = Join-Path $env:RUNNER_TEMP 'cantrip-update.out'
+          $err = Join-Path $env:RUNNER_TEMP 'cantrip-update.err'
+          $process = Start-Process -FilePath $binary -ArgumentList 'update' -NoNewWindow -Wait -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+          if ($process.ExitCode -ne 0) { throw 'updater launcher failed' }
+          $finished = $false
+          for ($attempt = 0; $attempt -lt 120; $attempt++) {
+            $text = Get-Content $out -Raw -ErrorAction SilentlyContinue
+            if ($text -match 'by flock') { $finished = $true; break }
+            Start-Sleep -Seconds 1
+          }
+          Get-Content $out -ErrorAction SilentlyContinue
+          Get-Content $err -ErrorAction SilentlyContinue
+          if (-not $finished) { throw 'updater did not finish' }
+          & $binary --version
+          if ($LASTEXITCODE -ne 0) { throw 'updated binary failed' }

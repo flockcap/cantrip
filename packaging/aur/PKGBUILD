@@ -1,0 +1,21 @@
+# Maintainer: Flock <hello@flock.holdings>
+pkgname=cantrip-bin
+pkgver=0.1.2
+pkgrel=1
+pkgdesc='Speak plainly. Get the incantation. A beautiful, keyless shell companion.'
+arch=('x86_64' 'aarch64')
+url='https://github.com/flockcap/cantrip'
+license=('MIT' 'Apache-2.0')
+provides=('cantrip')
+conflicts=('cantrip')
+source_x86_64=("${url}/releases/download/v${pkgver}/cantrip-cli-x86_64-unknown-linux-musl.tar.xz")
+source_aarch64=("${url}/releases/download/v${pkgver}/cantrip-cli-aarch64-unknown-linux-musl.tar.xz")
+# Filled from release checksums by scripts/update-aur.py before submission.
+sha256sums_x86_64=('bf62e10e57c8aa634107d7bb90076e8a245589c209e2cd83d8f0cc617b2a8923')
+sha256sums_aarch64=('13a97f92f04808c62f197dfb9d62529ff07dd9e81f1721afe82997a27403a85d')
+package() {
+  local triple="${CARCH}-unknown-linux-musl"
+  install -Dm755 "cantrip-cli-${triple}/cantrip" "${pkgdir}/usr/bin/cantrip"
+  install -Dm644 "cantrip-cli-${triple}/LICENSE-MIT" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE-MIT"
+  install -Dm644 "cantrip-cli-${triple}/LICENSE-APACHE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE-APACHE"
+}

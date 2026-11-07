@@ -1,0 +1,13 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "cantrip-fyi",
+  "account_id": "931eea8bc3837d838d2694671a2ed14b",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-07",
+  "workers_dev": true,
+  "preview_urls": false,
+  "send_metrics": false,
+  "observability": { "enabled": false },
+  "routes": [{ "pattern": "cantrip.fyi", "custom_domain": true }],
+  "rules": [{ "type": "Text", "globs": ["**/*.sh", "**/*.ps1"], "fallthrough": true }]
+}

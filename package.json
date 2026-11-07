@@ -1,0 +1,14 @@
+{
+  "name": "cantrip-release-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "art": "node scripts/render-art.mjs",
+    "test:web": "node --test web/worker.test.mjs",
+    "deploy:web": "wrangler deploy --config web/wrangler.jsonc"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.16.0",
+    "wrangler": "4.158.0"
+  }
+}
