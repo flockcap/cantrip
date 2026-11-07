@@ -1,0 +1,8 @@
+/target
+/dist
+.DS_Store
+.env
+*.cast
+/node_modules
+/.wrangler
+/web/.wrangler
