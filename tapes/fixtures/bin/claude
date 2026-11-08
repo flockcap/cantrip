@@ -1,0 +1,6 @@
+#!/bin/sh
+# Recorded response transport for the reproducible marketing tape only.
+# This fixture directory is never packaged or added to the user's PATH.
+/bin/cat >/dev/null
+sleep 0.5
+/bin/cat "$CANTRIP_DEMO_RESPONSE"
