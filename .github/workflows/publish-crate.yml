@@ -1,0 +1,29 @@
+name: Publish crate
+on:
+  workflow_call:
+    inputs:
+      plan:
+        required: true
+        type: string
+    secrets:
+      CARGO_REGISTRY_TOKEN:
+        required: false
+permissions:
+  contents: read
+jobs:
+  crate:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Publish when credentials are configured
+        shell: bash
+        run: |
+          if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
+            echo 'crates.io skipped: CARGO_REGISTRY_TOKEN is not configured.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          cargo publish --locked

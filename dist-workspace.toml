@@ -1,0 +1,29 @@
+[workspace]
+members = ["cargo:."]
+
+[dist]
+cargo-dist-version = "0.34.0"
+ci = "github"
+installers = ["shell", "powershell", "homebrew"]
+targets = [
+  "aarch64-apple-darwin", "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu",
+  "x86_64-unknown-linux-musl", "aarch64-unknown-linux-musl",
+  "x86_64-pc-windows-msvc",
+]
+install-path = "CARGO_HOME"
+hosting = "github"
+install-updater = false
+formula = "cantrip"
+display-name = "cantrip"
+tap = "flockcap/homebrew-tap"
+# Publishing jobs skip registries whose credentials are unavailable.
+publish-jobs = ["./publish-tap", "./publish-crate"]
+pr-run-mode = "plan"
+# Work around cargo-dist 0.34 custom workflow path rendering; see scripts/generate-release.sh.
+allow-dirty = ["ci"]
+
+[dist.github-custom-runners]
+aarch64-unknown-linux-gnu = "ubuntu-24.04-arm"
+aarch64-unknown-linux-musl = "ubuntu-24.04-arm"
+
