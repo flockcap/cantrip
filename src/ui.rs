@@ -76,15 +76,19 @@ pub fn card(card: &Card<'_>) -> Result<Action> {
         bail!("confirmation needs a terminal; use --json, --dry-run, or --yolo");
     }
     let (columns, height) = crossterm::terminal::size()?;
-    let rows = command_rows(
+    let text_width = columns.min(100).saturating_sub(10) as usize;
+    let command_rows_n = command_rows(
         card.suggestion
             .raw
             .as_deref()
             .unwrap_or(&card.suggestion.command),
-        columns.min(100).saturating_sub(10) as usize,
+        text_width,
     )
     .min(8);
-    let desired = 14 + rows as u16;
+    // command + blank line + wrapped explanation, so the explanation isn't clipped
+    let explain_rows = command_rows(&visible(&card.suggestion.explanation), text_width).min(6);
+    let rows = command_rows_n + 1 + explain_rows;
+    let desired = if card.theme.framed { 12 } else { 9 } + rows as u16;
     let mut screen = Screen::new(height.saturating_sub(2).clamp(8, desired))?;
     let mut scroll = 0u16;
     loop {
@@ -127,17 +131,27 @@ pub fn draw(frame: &mut ratatui::Frame<'_>, card: &Card<'_>, scroll: u16) {
     frame.render_widget(Block::default().style(Style::default().bg(t.hard)), whole);
     let width = whole.width.min(100);
     let area = Rect::new(
-        whole.x + whole.width.saturating_sub(width) / 2,
+        if t.framed {
+            whole.x + whole.width.saturating_sub(width) / 2
+        } else {
+            whole.x
+        },
         whole.y,
         width,
         whole.height,
     );
-    let block = Block::default()
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .border_style(Style::default().fg(t.border))
-        .style(Style::default().bg(t.bg).fg(t.fg))
-        .padding(Padding::new(3, 3, 1, 1));
+    let block = if t.framed {
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(t.border))
+            .style(Style::default().bg(t.bg).fg(t.fg))
+            .padding(Padding::new(3, 3, 1, 1))
+    } else {
+        Block::default()
+            .style(Style::default().bg(t.bg).fg(t.fg))
+            .padding(Padding::new(2, 2, 1, 0))
+    };
     let inner = block.inner(area);
     frame.render_widget(block, area);
     if inner.height < 5 || inner.width < 15 {
@@ -211,7 +225,7 @@ pub fn draw(frame: &mut ratatui::Frame<'_>, card: &Card<'_>, scroll: u16) {
             Span::styled(
                 badge,
                 Style::default()
-                    .fg(t.hard)
+                    .fg(t.ink)
                     .bg(color)
                     .add_modifier(Modifier::BOLD),
             ),
@@ -276,12 +290,21 @@ pub fn confirm_high(suggestion: &Suggestion, theme: Theme) -> Result<bool> {
     let mut scroll = 0u16;
     loop {
         screen.terminal.draw(|frame| {
-            let block = Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .border_style(Style::default().fg(theme.red))
-                .style(Style::default().bg(theme.hard).fg(theme.red))
-                .padding(Padding::uniform(1));
+            let block = if theme.framed {
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .border_style(Style::default().fg(theme.red))
+                    .style(Style::default().bg(theme.hard).fg(theme.red))
+                    .padding(Padding::uniform(1))
+            } else {
+                Block::default()
+                    .borders(Borders::LEFT)
+                    .border_type(BorderType::Thick)
+                    .border_style(Style::default().fg(theme.red))
+                    .style(Style::default().bg(theme.hard).fg(theme.red))
+                    .padding(Padding::new(2, 1, 1, 0))
+            };
             let area = frame.area();
             let inner = block.inner(area);
             frame.render_widget(block, area);
@@ -416,5 +439,46 @@ mod tests {
                 assert!(text.contains("find .") && text.contains("enter run"));
             }
         }
+    }
+    #[test]
+    fn frameless_glass_card_draws_no_border_or_background() {
+        let mut terminal = Terminal::new(TestBackend::new(80, 16)).unwrap();
+        let suggestion = Suggestion {
+            command: "du -sh *".into(),
+            explanation: "Show sizes.".into(),
+            danger: Danger::Low,
+            alternatives: vec![],
+            warnings: vec![],
+            raw: None,
+        };
+        let mut theme = Theme::named("glass").unwrap();
+        theme.framed = false;
+        terminal
+            .draw(|f| {
+                draw(
+                    f,
+                    &Card {
+                        suggestion: &suggestion,
+                        intent: "sizes",
+                        agent: "claude",
+                        theme,
+                        dry_run: false,
+                        status: "",
+                    },
+                    0,
+                )
+            })
+            .unwrap();
+        let buffer = terminal.backend().buffer();
+        let text: String = buffer.content.iter().map(|c| c.symbol()).collect();
+        assert!(text.contains("du -sh") && text.contains("Show sizes."));
+        assert!(!text.contains('╭') && !text.contains('│'));
+        // only the danger badge (" LOW ") paints a background
+        let painted = buffer
+            .content
+            .iter()
+            .filter(|c| c.bg != ratatui::style::Color::Reset)
+            .count();
+        assert_eq!(painted, " LOW ".len());
     }
 }
