@@ -65,8 +65,9 @@ async fn run() -> Result<i32> {
         config.history_lines,
     )?;
     let request = suggestion::prompt(&intent, &context, args.explain)?;
-    let theme =
+    let mut theme =
         Theme::named(args.theme.as_deref().unwrap_or(&config.theme)).context("unknown theme")?;
+    theme.framed = config.border;
     let mut cache = cantrip_cli::cache::Cache::default();
     let mut result = generate(&mut cache, &agent, &request, !args.json, false).await?;
     let mut base_danger = result.danger;

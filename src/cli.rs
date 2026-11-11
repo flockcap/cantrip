@@ -27,7 +27,7 @@ pub struct Cli {
     #[arg(long)]
     pub explain: bool,
     /// Override the configured theme
-    #[arg(long, value_parser=["gruvbox","rose-pine","flock"])]
+    #[arg(long, value_parser=["gruvbox","rose-pine","flock","glass"])]
     pub theme: Option<String>,
     #[command(subcommand)]
     pub subcommand: Option<Commands>,

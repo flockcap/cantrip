@@ -15,6 +15,10 @@ pub struct Theme {
     pub purple: Color,
     pub aqua: Color,
     pub orange: Color,
+    /// text drawn on top of colored badges
+    pub ink: Color,
+    /// draw the rounded box around the card
+    pub framed: bool,
 }
 impl Theme {
     pub fn named(name: &str) -> Option<Self> {
@@ -33,12 +37,15 @@ impl Theme {
             purple: rgb(0xd3869b),
             aqua: rgb(0x8ec07c),
             orange: rgb(0xfe8019),
+            ink: rgb(0x1d2021),
+            framed: true,
         };
         match name {
             "gruvbox" => {}
             "rose-pine" => {
                 t.bg = rgb(0x191724);
                 t.hard = rgb(0x191724);
+                t.ink = rgb(0x191724);
                 t.surface = rgb(0x26233a);
                 t.border = rgb(0x524f67);
                 t.fg = rgb(0xe0def4);
@@ -58,6 +65,24 @@ impl Theme {
                 t.green = t.fg;
                 t.blue = t.muted;
                 t.purple = t.muted;
+            }
+            "glass" => {
+                // transparent: uses the terminal's own (translucent) background
+                t.bg = Color::Reset;
+                t.hard = Color::Reset;
+                t.surface = rgb(0x232326);
+                t.border = rgb(0x3a3a3e);
+                t.fg = rgb(0xe4e4e6);
+                t.muted = rgb(0xbdbdc2);
+                t.gray = rgb(0x76767c);
+                t.red = rgb(0xe07a7a);
+                t.green = rgb(0x8cc896);
+                t.yellow = rgb(0xe1c88c);
+                t.blue = rgb(0x8fa8c8);
+                t.purple = rgb(0xc09ad0);
+                t.aqua = rgb(0x88c4c0);
+                t.orange = rgb(0xe0a87a);
+                t.ink = rgb(0x101011);
             }
             _ => return None,
         }

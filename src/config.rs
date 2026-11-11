@@ -13,6 +13,8 @@ pub struct Config {
     pub context_richness: Richness,
     pub history_lines: usize,
     pub agent_timeout_seconds: u64,
+    /// false = no box around the card
+    pub border: bool,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -26,6 +28,7 @@ impl Default for Config {
             context_richness: Richness::Normal,
             history_lines: 10,
             agent_timeout_seconds: 120,
+            border: true,
         }
     }
 }
@@ -50,7 +53,7 @@ impl Config {
     pub fn from_toml(text: &str) -> Result<Self> {
         let config: Self = toml::from_str(text)?;
         if Theme::named(&config.theme).is_none() {
-            bail!("unknown theme; choose gruvbox, rose-pine, or flock");
+            bail!("unknown theme; choose gruvbox, rose-pine, flock, or glass");
         }
         if config.agent_precedence.is_empty() {
             bail!("agent_precedence cannot be empty");
@@ -83,5 +86,6 @@ mod tests {
         assert!(Config::from_toml("agent_precedence = ['unknown']").is_err());
         assert!(Config::from_toml("agent_timeout_seconds = 0").is_err());
         assert!(Config::from_toml(&Config::example().unwrap()).is_ok());
+        assert!(Config::from_toml("border = false\ntheme = 'glass'").is_ok_and(|c| !c.border));
     }
 }

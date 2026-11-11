@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add `border = false` for a frameless confirmation card; high-danger confirmations keep a red rule.
+- Add the `glass` theme, which leaves the terminal background untouched so translucent terminals show through.
+- Size the card for wrapped explanations so they are no longer clipped.
+
 ## 0.1.2
 
 - Use PowerShell 7 when available for Windows updates.

@@ -51,7 +51,7 @@ cantrip                          # a quiet input line
 
 `cantrip --json "find listening ports"` returns structured JSON and never executes. Flags go before the wish; `--dry-run` previews, `--explain` adds detail, and `--yolo` skips the first confirmation.
 
-Gruvbox by default. `--theme rose-pine` or `--theme flock` for a change of scenery.
+Gruvbox by default. `--theme rose-pine` or `--theme flock` for a change of scenery, or `--theme glass` to draw on your terminal's own (even translucent) background. Set `border = false` for a frameless card.
 
 Dangerous shapes are flagged locally and require a second, default-No confirmation; only explicit `--yolo --force` bypasses it. These checks are heuristics: review commands before running them.
 
@@ -76,6 +76,7 @@ include_history = false
 context_richness = "normal"      # minimal / normal / rich
 history_lines = 10
 agent_timeout_seconds = 120
+border = true                    # false = frameless card
 ```
 
 `$XDG_CONFIG_HOME` is honored. Minimal context sends cwd, OS, architecture, and shell only. Normal adds a capped filename/type listing, git branch/state, and tool availability. Rich raises the listing cap. File contents are never collected. Opt-in history adds at most `history_lines` entries from `$HISTFILE` or the shell's history file. Suggestions are cached in process memory only.
